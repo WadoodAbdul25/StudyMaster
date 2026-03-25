@@ -1,0 +1,1 @@
+// File just for connecting to Gemeni API and fetching data

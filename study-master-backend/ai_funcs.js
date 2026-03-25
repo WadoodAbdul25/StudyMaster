@@ -1,0 +1,1 @@
+// defines all the functions for the main AI activities, such as generating tasks, recommendations etc.
