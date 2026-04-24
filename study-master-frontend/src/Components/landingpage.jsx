@@ -84,7 +84,7 @@ export default function LandingPage() {
               Get smart recommendations, automated task generation, and personalized study strategies.
             </p>
             <div className="flex flex-wrap gap-3">
-              <button className="bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg flex items-center gap-2 transition-colors">
+              <button className="bg-indigo-600 hover:bg-indigo-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg flex items-center gap-2 transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                   <polyline points="17 8 12 3 7 8" />

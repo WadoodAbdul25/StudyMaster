@@ -9,3 +9,6 @@ Create a Folder called "StudyMaster"
 - Then check if you have all the branches in your local repo by running `git branch`
 - if not then you pull the branch that you want to work on by running `git pull origin <branch_name>`
 
+
+
+do in terminal once to start test: npm start
