@@ -1,6 +1,6 @@
 # Wadood — Progress Tracker
 
-**Tasks assigned:** 14 &nbsp;|&nbsp; **Completed:** 0 / 14
+**Tasks assigned:** 14 &nbsp;|&nbsp; **Completed:** 2 / 14
 
 > Update this file when you finish a task. Change `[ ]` to `[x]` and fill in the completion date.
 > Full task descriptions are in [TASKS.md](./TASKS.md).
@@ -9,8 +9,8 @@
 
 ## Phase 1 — Foundation & Setup
 
-- [ ] **T1** — Create folder structure (`models/`, `routes/`, `controllers/`, `middleware/`, `services/`) &nbsp;·&nbsp; _Completed:_
-- [ ] **T2** — Wire MongoDB Atlas connection via Mongoose in `server.js` &nbsp;·&nbsp; _Completed:_
+- [x] **T1** — Create folder structure (`models/`, `routes/`, `controllers/`, `middleware/`, `services/`) &nbsp;·&nbsp; _Completed: 2026-05-08_
+- [x] **T2** — Wire MongoDB Atlas connection via Mongoose in `server.js` &nbsp;·&nbsp; _Completed: 2026-05-08_
 
 ---
 
@@ -45,8 +45,8 @@
 
 | Phase | Done | Total |
 |-------|------|-------|
-| Phase 1 — Foundation | 0 | 2 |
+| Phase 1 — Foundation | 2 | 2 |
 | Phase 2 — Models | 0 | 5 |
 | Phase 5 — AI Integration | 0 | 6 |
 | Phase 6 — Polish | 0 | 1 |
-| **Total** | **0** | **14** |
+| **Total** | **2** | **14** |
