@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import UploadModal from './uploadModal';
 
 export default function LandingPage() {
+    const [showUpload, setShowUpload] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -11,8 +13,14 @@ export default function LandingPage() {
             <p className="font-semibold text-gray-800">StudyMaster</p>
 
             <div className="flex items-center gap-5 py-2 px-4">
-                <button className="text-sm text-gray-500">features</button>
+            <button 
+                onClick={() => document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })}
+                className="text-sm text-gray-500"
+            >
+                features
+            </button>
                 <button className="text-sm text-gray-500">pricing</button>
+                <a href="/dashboard" className="text-sm text-gray-500">Dashboard</a>
                 <button className="bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg">
                     Sign up
                 </button>     
@@ -32,7 +40,9 @@ export default function LandingPage() {
                     semester. Get smart recommendations, automated task generation, and personalized study strategies.</p>
                 
                 <div className="flex gap-4">
-                    <button className="bg-indigo-500 text-white text-sm px-6 py-3 rounded-lg">
+                    <button 
+                    onClick={() => setShowUpload(true)}
+                    className="bg-indigo-500 text-white text-sm px-6 py-3 rounded-lg">
                     Upload syllabus </button>
                     <button className="border border-gray-200 text-sm px-6 py-3 rounded-lg">
                     See demo </button>
@@ -75,9 +85,8 @@ export default function LandingPage() {
         </div>
         </section>
 
-
         {/* How it works section */}
-
+        <section id="how-it-works" className="bg-gray-100 border-b border-t py-16 px-7"></section>
         <section className="bg-gray-100 border-b border-t py-16 px-7">
         <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">How it Works</h2>
@@ -105,12 +114,16 @@ export default function LandingPage() {
 
         </section>
 
-
         {/* get started section */}
         <section className="bg-gray-100 py-16 px-7">
-
-
         </section>
+         {/* Upload Modal */}
+         {showUpload && (
+            <UploadModal
+                onClose={() => setShowUpload(false)}
+                onUploadSuccess={() => window.location.reload()}
+            />
+        )}
     </div>
   );
 }
