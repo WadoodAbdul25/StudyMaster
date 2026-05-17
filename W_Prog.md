@@ -1,6 +1,6 @@
 # Wadood — Progress Tracker
 
-**Tasks assigned:** 14 &nbsp;|&nbsp; **Completed:** 2 / 14
+**Tasks assigned:** 14 &nbsp;|&nbsp; **Completed:** 7 / 14
 
 > Update this file when you finish a task. Change `[ ]` to `[x]` and fill in the completion date.
 > Full task descriptions are in [TASKS.md](./TASKS.md).
@@ -16,11 +16,11 @@
 
 ## Phase 2 — Database Models
 
-- [ ] **T5** — User model (`models/User.js`) &nbsp;·&nbsp; _Completed:_
-- [ ] **T6** — Course model (`models/Course.js`) &nbsp;·&nbsp; _Completed:_
-- [ ] **T7** — Document model (`models/Document.js`) &nbsp;·&nbsp; _Completed:_
-- [ ] **T8** — Task model (`models/Task.js`) &nbsp;·&nbsp; _Completed:_
-- [ ] **T9** — StudyPlan model (`models/StudyPlan.js`) &nbsp;·&nbsp; _Completed:_
+- [x] **T5** — User model (`models/User.js`) &nbsp;·&nbsp; _Completed: 2026-05-16_
+- [x] **T6** — Course model (`models/Course.js`) &nbsp;·&nbsp; _Completed: 2026-05-16_
+- [x] **T7** — Document model (`models/Document.js`) &nbsp;·&nbsp; _Completed: 2026-05-16_
+- [x] **T8** — Task model (`models/Task.js`) &nbsp;·&nbsp; _Completed: 2026-05-16_
+- [x] **T9** — StudyPlan model (`models/StudyPlan.js`) &nbsp;·&nbsp; _Completed: 2026-05-16_
 
 ---
 
@@ -46,7 +46,7 @@
 | Phase | Done | Total |
 |-------|------|-------|
 | Phase 1 — Foundation | 2 | 2 |
-| Phase 2 — Models | 0 | 5 |
+| Phase 2 — Models | 5 | 5 |
 | Phase 5 — AI Integration | 0 | 6 |
 | Phase 6 — Polish | 0 | 1 |
-| **Total** | **2** | **14** |
+| **Total** | **7** | **14** |

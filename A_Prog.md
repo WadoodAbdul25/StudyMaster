@@ -1,6 +1,6 @@
 # Afnan — Progress Tracker
 
-**Tasks assigned:** 13 &nbsp;|&nbsp; **Completed:** 0 / 13
+**Tasks assigned:** 13 &nbsp;|&nbsp; **Completed:** 1 / 13
 
 > Update this file when you finish a task. Change `[ ]` to `[x]` and fill in the completion date.
 > Full task descriptions are in [TASKS.md](./TASKS.md).
@@ -9,7 +9,7 @@
 
 ## Phase 1 — Foundation & Setup
 
-- [ ] **T3** — Add CORS and global error-handling middleware to `server.js` &nbsp;·&nbsp; _Completed:_
+- [x] **T3** — Add CORS and global error-handling middleware to `server.js` &nbsp;·&nbsp; _Completed: 2026-05-15_
 - [ ] **T4** — Add `GEMINI_API_KEY` and `JWT_SECRET` to `.env` &nbsp;·&nbsp; _Completed:_
 
 ---
@@ -44,8 +44,8 @@
 
 | Phase | Done | Total |
 |-------|------|-------|
-| Phase 1 — Foundation | 0 | 2 |
+| Phase 1 — Foundation | 1 | 2 |
 | Phase 3 — Authentication | 0 | 4 |
 | Phase 4 — Core API Routes | 0 | 4 |
 | Phase 6 — Polish | 0 | 3 |
-| **Total** | **0** | **13** |
+| **Total** | **1** | **13** |
