@@ -44,6 +44,45 @@ const uploadDocument = async (req, res, next) => {
 };
 
 const fs = require("fs");
+const Task = require("../models/Task");
+
+const processDocument = async (req, res, next) => {
+  try {
+    const document = await Document.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!document) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+    if (document.processedAt) {
+      return res.status(409).json({ error: "Document already processed" });
+    }
+
+    const { extractText } = require("../services/extractionService");
+    const { extractTasksFromText } = require("../ai_funcs");
+    const rawText = await extractText(document.filePath, document.fileType);
+    const extracted = await extractTasksFromText(rawText);
+
+    const taskDocs = extracted.map((t) => ({
+      courseId: document.courseId,
+      userId: document.userId,
+      title: t.title,
+      type: t.type,
+      dueDate: t.dueDate || null,
+      description: t.description || "",
+      priority: t.priority || "medium",
+      status: "pending",
+    }));
+
+    const created = await Task.insertMany(taskDocs);
+
+    document.rawText = rawText;
+    document.processedAt = new Date();
+    await document.save();
+
+    res.status(200).json({ document, tasksCreated: created.length });
+  } catch (err) {
+    next(err);
+  }
+};
 
 const getDocuments = async (req, res, next) => {
   try {
@@ -71,4 +110,4 @@ const deleteDocument = async (req, res, next) => {
   }
 };
 
-module.exports = { upload, uploadDocument, getDocuments, deleteDocument };
+module.exports = { upload, uploadDocument, getDocuments, deleteDocument, processDocument };

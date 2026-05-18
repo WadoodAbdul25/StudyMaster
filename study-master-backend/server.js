@@ -7,7 +7,8 @@ const userRoutes = require("./routes/userRoutes");
 const courseRoutes = require("./routes/courseRoutes");
 const documentRoutes = require("./routes/documentRoutes");
 const taskRoutes = require("./routes/taskRoutes");
-const { deleteDocument } = require("./controllers/documentController");
+const { deleteDocument, processDocument } = require("./controllers/documentController");
+const studyPlanRoutes = require("./routes/studyPlanRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,6 +27,8 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/courses/:courseId/documents", documentRoutes);
 app.use("/api/courses/:courseId/tasks", taskRoutes);
 app.delete("/api/documents/:id", require("./middleware/verifyToken"), deleteDocument);
+app.post("/api/documents/:id/process", require("./middleware/verifyToken"), processDocument);
+app.use("/api/courses/:courseId/study-plan", require("./middleware/verifyToken"), studyPlanRoutes);
 
 mongoose
   .connect(process.env.MONGODB_URI, { dbName: process.env.MONGODB_DB_NAME })
