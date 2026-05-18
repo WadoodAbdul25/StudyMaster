@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router({ mergeParams: true });
-const { generatePlan } = require("../controllers/studyPlanController");
+const { getPlan, generatePlan } = require("../controllers/studyPlanController");
 
+router.get("/", getPlan);
 router.post("/generate", generatePlan);
 
 module.exports = router;

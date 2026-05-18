@@ -2,6 +2,18 @@ const StudyPlan = require("../models/StudyPlan");
 const Task = require("../models/Task");
 const { generateStudyPlan } = require("../ai_funcs");
 
+const getPlan = async (req, res, next) => {
+  try {
+    const plan = await StudyPlan.findOne({ courseId: req.params.courseId }).populate("taskIds");
+    if (!plan) {
+      return res.status(404).json({ error: "No study plan found for this course" });
+    }
+    res.status(200).json(plan);
+  } catch (err) {
+    next(err);
+  }
+};
+
 const generatePlan = async (req, res, next) => {
   try {
     const tasks = await Task.find({ courseId: req.params.courseId, userId: req.user.id });
@@ -29,4 +41,4 @@ const generatePlan = async (req, res, next) => {
   }
 };
 
-module.exports = { generatePlan };
+module.exports = { getPlan, generatePlan };
