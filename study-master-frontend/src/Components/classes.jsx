@@ -1,23 +1,31 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 
 const classesData = [
   {
     id: 1,
     name: 'Web Development',
     code: 'CS 301',
-    instructor: 'Dr. Johnson',
+    instructor: 'Prof. Johnson',
     progress: 82,
     assignments: 3,
     nextClass: 'Today • 2:00 PM',
     color: 'bg-indigo-500',
   },
-
+  {
+    id: 2,
+    name: 'Data Structures',
+    code: 'CS 210',
+    instructor: 'Prof. Smith',
+    progress: 67,
+    assignments: 2,
+    nextClass: 'Tomorrow • 10:00 AM',
+    color: 'bg-orange-500',
+  },
   {
     id: 3,
     name: 'UI/UX Design',
     code: 'DES 204',
-    instructor: 'Sarah Lee',
+    instructor: 'Prof. Lee',
     progress: 91,
     assignments: 1,
     nextClass: 'Wednesday • 1:00 PM',
@@ -27,7 +35,7 @@ const classesData = [
     id: 4,
     name: 'Computer Science',
     code: 'CS 101',
-    instructor: 'Dr. Brown',
+    instructor: 'Prof. Brown',
     progress: 74,
     assignments: 4,
     nextClass: 'Thursday • 9:00 AM',
@@ -36,19 +44,9 @@ const classesData = [
 ];
 
 const upcomingAssignments = [
-  {
-    id: 1,
-    title: 'React Dashboard Project',
-    course: 'Web Development',
-    due: 'Due Tomorrow',
-  },
-  {
-    id: 2,
-    title: 'Binary Tree Quiz',
-    course: 'Data Structures',
-    due: 'Due Friday',
-  },
-  
+  { id: 1, title: ' Homwork 5: Build a Portfolio Website', course: 'Web Development', due: 'Due Tomorrow', },
+  { id: 2, title: 'Data Structures Quiz', course: 'Data Structures', due: 'Due Friday', },
+  { id: 3, title: 'Project Submission', course: 'UI/UX Design', due: 'Due Next Week', },
 ];
 
 const navItems = [
@@ -79,28 +77,18 @@ export default function Classes() {
         {/* Navigation */}
         <div className="flex-1 px-3 py-5">
           <div className="space-y-1">
-            {navItems.map((item) => {
-              const routeMap = {
-                'Dashboard': '/dashboard',
-                'Classes': '/classes',
-                'Calendar': '/calendar',
-                'AI Assistant': '/ai',
-                'Settings': '/settings',
-              };
-              return (
-                <Link
-                  key={item}
-                  to={routeMap[item]}
-                  onClick={() => setActiveNav(item)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition block ${
-                    activeNav === item
-                      ? 'bg-indigo-50 text-indigo-500 font-medium'
-                      : 'text-gray-500 hover:bg-gray-50'
-                  }`}>
-                  {item}
-                </Link>
-              );
-            })}
+            {navItems.map((item) => (
+              <button
+                key={item}
+                onClick={() => setActiveNav(item)}
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
+                  activeNav === item
+                    ? 'bg-indigo-50 text-indigo-500 font-medium'
+                    : 'text-gray-500 hover:bg-gray-50'
+                }`}>
+                {item}
+              </button>
+            ))}
           </div>
 
           {/* Tip Card */}
@@ -138,14 +126,17 @@ export default function Classes() {
         <div className="p-6">
 
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              Your Classes
-            </h1>
+          <div className="mb-8 flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">Your Classes</h1>
+              <p className="text-sm text-gray-500">Track progress, assignments, and upcoming lectures.</p>
+            </div>
 
-            <p className="text-sm text-gray-500">
-              Track progress, assignments, and upcoming lectures.
-            </p>
+            <div className="ml-4 mt-1">
+              <a href="/dashboard" className="inline-flex items-center gap-2 text-sm text-indigo-500 bg-indigo-50 px-3 py-2 rounded-lg hover:bg-indigo-100">
+                Back to Dashboard
+              </a>
+            </div>
           </div>
 
           {/* Layout */}

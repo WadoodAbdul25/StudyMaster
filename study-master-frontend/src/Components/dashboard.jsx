@@ -106,9 +106,9 @@ export default function Dashboard() {
                 'Settings': '/settings',
               };
               return (
-                <Link
+                <a
                   key={item}
-                  to={routeMap[item]}
+                  href={routeMap[item]}
                   onClick={() => setActiveNav(item)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition block ${
                     activeNav === item
@@ -116,7 +116,7 @@ export default function Dashboard() {
                       : 'text-gray-500 hover:bg-gray-50'
                   }`}>
                   {item}
-                </Link>
+                </a>
               );
             })}
           </div>
