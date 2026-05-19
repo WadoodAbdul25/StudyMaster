@@ -34,17 +34,30 @@ async function generateStudyPlan(tasks) {
     )
     .join("\n");
 
-  const prompt = `You are an academic study coach. Create a detailed, practical study plan for a student with these upcoming tasks:
+  const prompt = `You are an academic study coach. Create a practical week-by-week study plan for a student with these upcoming academic tasks:
 
 ${taskList}
 
-Your plan should include:
-1. A week-by-week study timeline leading up to each deadline
-2. How to prioritize tasks based on due dates and priority levels
-3. Study strategies tailored to each task type (exams, assignments, quizzes, readings)
-4. Specific time management tips for this exact workload
+Return ONLY Markdown. Do not include code fences or JSON.
 
-Reference the actual task names and dates. Be specific, actionable, and encouraging.`;
+Formatting requirements:
+- Start with "# Study Plan"
+- Create at most 8 weekly sections.
+- Each weekly section heading must be exactly "## Week N plan -- Short topic title" where N starts at 1.
+- The short topic title must fit the actual work for that week, such as "React components and midterm prep".
+- Under each week, include:
+  - A short "Focus:" line explaining the main goal for that week.
+  - 3 to 6 bullet points telling the student exactly what to study or complete.
+  - Mention actual task names and due dates when they exist.
+  - Reference the relevant tasks by name when a weekly action supports a task.
+  - Include suggested time blocks, such as "45 minutes" or "2 hours".
+  - Use bullet points by default.
+  - Include a compact Markdown table only when it makes the weekly plan clearer, for example columns: Day, Work block, Task.
+- End with a "## Priority notes" section with 2 to 5 bullets.
+- Do not create more than 8 weeks even if there are many tasks.
+- Do not invent assignments that are not in the task list.
+
+Make the plan concrete, calm, and useful.`;
 
   const result = await model.generateContent(prompt);
   return result.response.text();

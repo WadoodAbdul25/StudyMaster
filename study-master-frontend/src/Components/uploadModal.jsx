@@ -61,11 +61,11 @@ export default function UploadModal({ courseId, token, onClose, onUploadSuccess 
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Upload Syllabus</h2>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-3 sm:items-center sm:p-6">
+      <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+        <h2 className="mb-4 text-xl font-bold text-slate-900">Upload Syllabus</h2>
         
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4">
+        <div className="mb-4 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center sm:p-8">
           <input
             type="file"
             accept=".pdf,.docx"
@@ -73,28 +73,28 @@ export default function UploadModal({ courseId, token, onClose, onUploadSuccess 
             className="hidden"
             id="fileInput"
           />
-          <label htmlFor="fileInput" className="cursor-pointer">
+          <label htmlFor="fileInput" className="block cursor-pointer">
             {file ? (
-              <p className="text-green-600">{file.name}</p>
+              <p className="break-words text-sm font-bold text-green-600">{file.name}</p>
             ) : (
-              <p className="text-gray-500">Click to select a PDF or DOCX file</p>
+              <p className="text-sm font-semibold text-slate-500">Tap to select a PDF or DOCX file</p>
             )}
           </label>
         </div>
 
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
-        <div className="flex gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           <button
             onClick={handleUpload}
             disabled={!file || uploading}
-            className="bg-indigo-500 text-white px-4 py-2 rounded-lg flex-1 disabled:opacity-50"
+            className="rounded-lg bg-violet-600 px-4 py-3 font-bold text-white disabled:opacity-50"
           >
             {uploading ? 'Uploading...' : 'Upload'}
           </button>
           <button
             onClick={onClose}
-            className="border rounded-lg px-4 py-2 flex-1"
+            className="rounded-lg border border-slate-200 px-4 py-3 font-bold text-slate-600"
           >
             Cancel
           </button>

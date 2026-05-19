@@ -41,6 +41,8 @@ const generatePlan = async (req, res, next) => {
         userId: req.user.id,
         taskIds: tasks.map((t) => t._id),
         aiRecommendations,
+        format: "weekly-markdown-v1",
+        maxWeeks: 8,
         generatedAt: new Date(),
       },
       { upsert: true, new: true }
