@@ -1,4 +1,5 @@
 const Task = require("../models/Task");
+const Course = require("../models/Course");
 
 const VALID_TYPES = ["assignment", "exam", "quiz", "reading"];
 const VALID_PRIORITIES = ["low", "medium", "high"];
@@ -6,6 +7,11 @@ const VALID_STATUSES = ["pending", "complete"];
 
 const getTasks = async (req, res, next) => {
   try {
+    const course = await Course.findOne({ _id: req.params.courseId, userId: req.user.id });
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
     const filter = { courseId: req.params.courseId, userId: req.user.id };
 
     if (req.query.status) {
@@ -31,10 +37,15 @@ const getTasks = async (req, res, next) => {
 
 const createTask = async (req, res, next) => {
   try {
+    const course = await Course.findOne({ _id: req.params.courseId, userId: req.user.id });
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
     const { title, type, dueDate, description, priority } = req.body;
 
-    if (!title || !type || !priority) {
-      return res.status(400).json({ error: "title, type, and priority are required" });
+    if (!title || !type || !dueDate || !priority) {
+      return res.status(400).json({ error: "title, type, dueDate, and priority are required" });
     }
 
     if (!VALID_TYPES.includes(type)) {
@@ -43,6 +54,10 @@ const createTask = async (req, res, next) => {
 
     if (!VALID_PRIORITIES.includes(priority)) {
       return res.status(400).json({ error: "priority must be low, medium, or high" });
+    }
+
+    if (Number.isNaN(new Date(dueDate).getTime())) {
+      return res.status(400).json({ error: "dueDate must be a valid date" });
     }
 
     const task = await Task.create({
@@ -63,10 +78,40 @@ const createTask = async (req, res, next) => {
 
 const updateTask = async (req, res, next) => {
   try {
+    const { title, type, dueDate, description, priority, status } = req.body;
+    const updates = {};
+
+    if (type && !VALID_TYPES.includes(type)) {
+      return res.status(400).json({ error: "type must be assignment, exam, quiz, or reading" });
+    }
+
+    if (priority && !VALID_PRIORITIES.includes(priority)) {
+      return res.status(400).json({ error: "priority must be low, medium, or high" });
+    }
+
+    if (status && !VALID_STATUSES.includes(status)) {
+      return res.status(400).json({ error: "status must be pending or complete" });
+    }
+
+    if (dueDate && Number.isNaN(new Date(dueDate).getTime())) {
+      return res.status(400).json({ error: "dueDate must be a valid date" });
+    }
+
+    if (title !== undefined) updates.title = title;
+    if (type !== undefined) updates.type = type;
+    if (dueDate !== undefined) updates.dueDate = dueDate;
+    if (description !== undefined) updates.description = description;
+    if (priority !== undefined) updates.priority = priority;
+    if (status !== undefined) updates.status = status;
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: "Provide at least one task field to update" });
+    }
+
     const task = await Task.findOneAndUpdate(
       { _id: req.params.id, userId: req.user.id },
-      req.body,
-      { new: true }
+      updates,
+      { new: true, runValidators: true }
     );
     if (!task) {
       return res.status(404).json({ error: "Task not found" });

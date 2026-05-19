@@ -1,10 +1,16 @@
 const StudyPlan = require("../models/StudyPlan");
 const Task = require("../models/Task");
+const Course = require("../models/Course");
 const { generateStudyPlan } = require("../ai_funcs");
 
 const getPlan = async (req, res, next) => {
   try {
-    const plan = await StudyPlan.findOne({ courseId: req.params.courseId }).populate("taskIds");
+    const course = await Course.findOne({ _id: req.params.courseId, userId: req.user.id });
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const plan = await StudyPlan.findOne({ courseId: req.params.courseId, userId: req.user.id }).populate("taskIds");
     if (!plan) {
       return res.status(404).json({ error: "No study plan found for this course" });
     }
@@ -16,6 +22,11 @@ const getPlan = async (req, res, next) => {
 
 const generatePlan = async (req, res, next) => {
   try {
+    const course = await Course.findOne({ _id: req.params.courseId, userId: req.user.id });
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
     const tasks = await Task.find({ courseId: req.params.courseId, userId: req.user.id });
     if (tasks.length === 0) {
       return res.status(400).json({ error: "No tasks found for this course" });
@@ -24,7 +35,7 @@ const generatePlan = async (req, res, next) => {
     const aiRecommendations = await generateStudyPlan(tasks);
 
     const plan = await StudyPlan.findOneAndUpdate(
-      { courseId: req.params.courseId },
+      { courseId: req.params.courseId, userId: req.user.id },
       {
         courseId: req.params.courseId,
         userId: req.user.id,

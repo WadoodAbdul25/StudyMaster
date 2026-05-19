@@ -1,6 +1,7 @@
 const multer = require("multer");
 const path = require("path");
 const Document = require("../models/Document");
+const Course = require("../models/Course");
 
 // save to uploads folder with original name
 const storage = multer.diskStorage({
@@ -18,6 +19,18 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({ storage, fileFilter });
+
+const verifyCourseAccess = async (req, res, next) => {
+  try {
+    const course = await Course.findOne({ _id: req.params.courseId, userId: req.user.id });
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
 
 const uploadDocument = async (req, res, next) => {
   try {
@@ -110,4 +123,4 @@ const deleteDocument = async (req, res, next) => {
   }
 };
 
-module.exports = { upload, uploadDocument, getDocuments, deleteDocument, processDocument };
+module.exports = { upload, verifyCourseAccess, uploadDocument, getDocuments, deleteDocument, processDocument };

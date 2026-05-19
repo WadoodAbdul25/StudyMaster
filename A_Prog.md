@@ -34,9 +34,9 @@
 
 ## Phase 6 — Integration & Polish
 
-- [ ] **T25** — `GET /courses/:courseId/study-plan` endpoint &nbsp;·&nbsp; _Completed:_
-- [ ] **T26** — Input validation and standardized error responses across all controllers &nbsp;·&nbsp; _Completed:_
-- [ ] **T27** — End-to-end manual test via Postman &nbsp;·&nbsp; _Completed:_
+- [x] **T25** — `GET /courses/:courseId/study-plan` endpoint &nbsp;·&nbsp; _Completed: 2026-05-19_
+- [x] **T26** — Input validation and standardized error responses across all controllers &nbsp;·&nbsp; _Completed: 2026-05-19_
+- [x] **T27** — End-to-end manual test via Postman &nbsp;·&nbsp; _Completed: 2026-05-19_
 
 ---
 
@@ -44,8 +44,8 @@
 
 | Phase | Done | Total |
 |-------|------|-------|
-| Phase 1 — Foundation | 1 | 2 |
+| Phase 1 — Foundation | 2 | 2 |
 | Phase 3 — Authentication | 4 | 4 |
 | Phase 4 — Core API Routes | 4 | 4 |
-| Phase 6 — Polish | 0 | 3 |
-| **Total** | **9** | **13** |
+| Phase 6 — Polish | 3 | 3 |
+| **Total** | **13** | **13** |
