@@ -1,14 +1,20 @@
 import { useState } from 'react';
+import { apiRequest } from '../api';
 
-export default function UploadModal({ onClose, onUploadSuccess }) {
+export default function UploadModal({ courseId, token, onClose, onUploadSuccess }) {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    if (selectedFile && selectedFile.type !== 'application/pdf') {
-      setError('Please upload a PDF file');
+    const allowedTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ];
+
+    if (selectedFile && !allowedTypes.includes(selectedFile.type)) {
+      setError('Please upload a PDF or DOCX file');
       setFile(null);
     } else {
       setError('');
@@ -22,24 +28,33 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
       return;
     }
 
+    if (!courseId || !token) {
+      setError('Choose a course and sign in before uploading.');
+      return;
+    }
+
     setUploading(true);
     const formData = new FormData();
-    formData.append('syllabus', file);
+    formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const document = await apiRequest(`/courses/${courseId}/documents`, {
+        token,
         method: 'POST',
-        body: formData
+        body: formData,
       });
 
-      if (response.ok) {
-        onUploadSuccess();
-        onClose();
-      } else {
-        setError('Upload failed. Try again.');
+      if (document?._id) {
+        await apiRequest(`/documents/${document._id}/process`, {
+          token,
+          method: 'POST',
+        });
       }
+
+      onUploadSuccess();
+      onClose();
     } catch (error) {
-      setError('Network error. Check if backend is running.');
+      setError(error.message || 'Upload failed. Try again.');
     } finally {
       setUploading(false);
     }
@@ -53,7 +68,7 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4">
           <input
             type="file"
-            accept=".pdf"
+            accept=".pdf,.docx"
             onChange={handleFileChange}
             className="hidden"
             id="fileInput"
@@ -62,7 +77,7 @@ export default function UploadModal({ onClose, onUploadSuccess }) {
             {file ? (
               <p className="text-green-600">{file.name}</p>
             ) : (
-              <p className="text-gray-500">Click to select a PDF file</p>
+              <p className="text-gray-500">Click to select a PDF or DOCX file</p>
             )}
           </label>
         </div>
