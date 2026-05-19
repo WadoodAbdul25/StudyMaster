@@ -2,11 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import UploadModal from './uploadModal';
 import { apiRequest, clearStoredAuth, getStoredAuth, setStoredAuth } from '../api';
 
-const emptyCourse = {
-  name: '',
-  courseCode: '',
-  semester: '',
-  description: '',
+const defaultCourse = {
+  name: 'General Course',
+  courseCode: 'GEN 101',
+  semester: 'Current Semester',
+  description: 'Default course for uploaded study materials',
 };
 
 export default function Dashboard() {
@@ -15,21 +15,22 @@ export default function Dashboard() {
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
   const [courses, setCourses] = useState([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
-  const [tasks, setTasks] = useState([]);
-  const [courseForm, setCourseForm] = useState(emptyCourse);
-  const [editingTask, setEditingTask] = useState(null);
+  const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editingAssignment, setEditingAssignment] = useState(null);
   const [showUpload, setShowUpload] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const fetchCourses = useCallback(async (token) => {
-    setError('');
-    setLoading(true);
+  const fetchAssignments = useCallback(async (courseId, token) => {
+    if (!courseId || !token) {
+      setAssignments([]);
+      setLoading(false);
+      return;
+    }
 
     try {
-      const data = await apiRequest('/courses', { token });
-      setCourses(data);
-      setSelectedCourseId((currentId) => currentId || data[0]?._id || '');
+      const data = await apiRequest(`/courses/${courseId}/tasks`, { token });
+      setAssignments(data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -37,30 +38,54 @@ export default function Dashboard() {
     }
   }, []);
 
-  const fetchTasks = useCallback(async (courseId, token) => {
-    setError('');
+  const ensureCourse = useCallback(async (token) => {
+    const data = await apiRequest('/courses', { token });
 
-    try {
-      const data = await apiRequest(`/courses/${courseId}/tasks`, { token });
-      setTasks(data);
-    } catch (err) {
-      setError(err.message);
+    if (data.length > 0) {
+      setCourses(data);
+      setSelectedCourseId((currentId) => currentId || data[0]._id);
+      return data[0]._id;
     }
+
+    const course = await apiRequest('/courses', {
+      token,
+      method: 'POST',
+      body: defaultCourse,
+    });
+
+    setCourses([course]);
+    setSelectedCourseId(course._id);
+    return course._id;
   }, []);
 
   useEffect(() => {
-    if (auth?.token) {
-      fetchCourses(auth.token);
-    }
-  }, [auth?.token, fetchCourses]);
+    const loadDashboard = async () => {
+      if (!auth?.token) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError('');
+
+      try {
+        const courseId = await ensureCourse(auth.token);
+        await fetchAssignments(courseId, auth.token);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    loadDashboard();
+  }, [auth?.token, ensureCourse, fetchAssignments]);
 
   useEffect(() => {
     if (auth?.token && selectedCourseId) {
-      fetchTasks(selectedCourseId, auth.token);
-    } else {
-      setTasks([]);
+      setLoading(true);
+      fetchAssignments(selectedCourseId, auth.token);
     }
-  }, [auth?.token, fetchTasks, selectedCourseId]);
+  }, [auth?.token, fetchAssignments, selectedCourseId]);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -68,13 +93,13 @@ export default function Dashboard() {
     setLoading(true);
 
     try {
-      const payload =
+      const body =
         authMode === 'register'
           ? authForm
           : { email: authForm.email, password: authForm.password };
       const data = await apiRequest(`/auth/${authMode}`, {
         method: 'POST',
-        body: payload,
+        body,
       });
 
       setStoredAuth(data);
@@ -82,26 +107,7 @@ export default function Dashboard() {
       setAuthForm({ name: '', email: '', password: '' });
     } catch (err) {
       setError(err.message);
-    } finally {
       setLoading(false);
-    }
-  };
-
-  const createCourse = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    try {
-      const course = await apiRequest('/courses', {
-        token: auth.token,
-        method: 'POST',
-        body: courseForm,
-      });
-      setCourses((currentCourses) => [...currentCourses, course]);
-      setSelectedCourseId(course._id);
-      setCourseForm(emptyCourse);
-    } catch (err) {
-      setError(err.message);
     }
   };
 
@@ -112,52 +118,50 @@ export default function Dashboard() {
         method: 'PUT',
         body: { status },
       });
-      fetchTasks(selectedCourseId, auth.token);
+      fetchAssignments(selectedCourseId, auth.token);
     } catch (err) {
       setError(err.message);
     }
   };
 
-  const deleteTask = async (id) => {
-    if (!window.confirm('Delete this task?')) {
-      return;
-    }
-
-    try {
-      await apiRequest(`/tasks/${id}`, {
-        token: auth.token,
-        method: 'DELETE',
-      });
-      fetchTasks(selectedCourseId, auth.token);
-    } catch (err) {
-      setError(err.message);
+  const deleteAssignment = async (id) => {
+    if (window.confirm('Delete this assignment?')) {
+      try {
+        await apiRequest(`/tasks/${id}`, {
+          token: auth.token,
+          method: 'DELETE',
+        });
+        fetchAssignments(selectedCourseId, auth.token);
+      } catch (err) {
+        setError(err.message);
+      }
     }
   };
 
-  const logout = () => {
+  const handleLogout = () => {
     clearStoredAuth();
     setAuth(null);
     setCourses([]);
     setSelectedCourseId('');
-    setTasks([]);
+    setAssignments([]);
   };
 
   if (!auth?.token) {
     return (
-      <main className="min-h-screen bg-gray-50 p-8">
-        <div className="mx-auto max-w-md rounded-lg border bg-white p-6 shadow-sm">
-          <h1 className="mb-2 text-2xl font-bold text-gray-800">StudyMaster</h1>
-          <p className="mb-6 text-sm text-gray-600">Sign in before managing courses and uploads.</p>
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-md mx-auto bg-white rounded-lg border p-6 shadow-sm">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">StudyMaster</h1>
+          <p className="text-gray-600 mb-8">Sign in to view your semester plan</p>
 
-          {error && <p className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
-          <form onSubmit={handleAuth} className="space-y-3">
+          <form onSubmit={handleAuth}>
             {authMode === 'register' && (
               <input
                 type="text"
                 value={authForm.name}
                 onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
-                className="w-full rounded-lg border p-2"
+                className="w-full border rounded-lg p-2 mb-3"
                 placeholder="Name"
                 required
               />
@@ -166,7 +170,7 @@ export default function Dashboard() {
               type="email"
               value={authForm.email}
               onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
-              className="w-full rounded-lg border p-2"
+              className="w-full border rounded-lg p-2 mb-3"
               placeholder="Email"
               required
             />
@@ -174,12 +178,12 @@ export default function Dashboard() {
               type="password"
               value={authForm.password}
               onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-              className="w-full rounded-lg border p-2"
+              className="w-full border rounded-lg p-2 mb-4"
               placeholder="Password"
               required
             />
-            <button type="submit" disabled={loading} className="w-full rounded-lg bg-indigo-500 px-4 py-2 text-white disabled:opacity-50">
-              {loading ? 'Please wait...' : authMode === 'login' ? 'Log in' : 'Create account'}
+            <button type="submit" disabled={loading} className="bg-indigo-500 text-white px-4 py-2 rounded-lg w-full disabled:opacity-50">
+              {loading ? 'Loading...' : authMode === 'login' ? 'Log in' : 'Sign up'}
             </button>
           </form>
 
@@ -189,150 +193,101 @@ export default function Dashboard() {
               setError('');
               setAuthMode(authMode === 'login' ? 'register' : 'login');
             }}
-            className="mt-4 text-sm text-indigo-600"
+            className="text-indigo-500 hover:text-indigo-700 text-sm mt-4"
           >
-            {authMode === 'login' ? 'Create an account' : 'Use existing account'}
+            {authMode === 'login' ? 'Need an account? Sign up' : 'Already have an account? Log in'}
           </button>
         </div>
-      </main>
+      </div>
     );
   }
 
-  const selectedCourse = courses.find((course) => course._id === selectedCourseId);
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-gray-500">Loading assignments...</div>
+      </div>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex justify-between items-start mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Your Semester Plan</h1>
-            <p className="text-gray-600">Tasks are loaded from the selected course.</p>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Your Semester Plan</h1>
+            <p className="text-gray-600">All your assignments organized in one place</p>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600">{auth.user?.email}</span>
-            <button onClick={logout} className="rounded-lg border px-4 py-2 text-sm">
+          <div className="flex gap-3">
+            <select
+              value={selectedCourseId}
+              onChange={(e) => setSelectedCourseId(e.target.value)}
+              className="text-sm border rounded-lg px-2 py-1 bg-white"
+            >
+              {courses.map((course) => (
+                <option key={course._id} value={course._id}>
+                  {course.name}
+                </option>
+              ))}
+            </select>
+            <button onClick={() => setShowUpload(true)} className="bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg">
+              Upload syllabus
+            </button>
+            <button onClick={handleLogout} className="border rounded-lg px-4 py-2 text-sm">
               Log out
             </button>
           </div>
         </div>
 
-        {error && <p className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
-        <section className="mb-6 grid gap-4 lg:grid-cols-[1fr_2fr]">
-          <form onSubmit={createCourse} className="rounded-lg border bg-white p-5 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-gray-800">Add Course</h2>
-            <div className="grid gap-3">
-              <input
-                type="text"
-                value={courseForm.name}
-                onChange={(e) => setCourseForm({ ...courseForm, name: e.target.value })}
-                className="rounded-lg border p-2"
-                placeholder="Course name"
-                required
-              />
-              <input
-                type="text"
-                value={courseForm.courseCode}
-                onChange={(e) => setCourseForm({ ...courseForm, courseCode: e.target.value })}
-                className="rounded-lg border p-2"
-                placeholder="Course code"
-                required
-              />
-              <input
-                type="text"
-                value={courseForm.semester}
-                onChange={(e) => setCourseForm({ ...courseForm, semester: e.target.value })}
-                className="rounded-lg border p-2"
-                placeholder="Semester"
-                required
-              />
-              <textarea
-                value={courseForm.description}
-                onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
-                className="rounded-lg border p-2"
-                placeholder="Description"
-                rows="3"
-              />
-              <button type="submit" className="rounded-lg bg-indigo-500 px-4 py-2 text-white">
-                Create Course
-              </button>
-            </div>
-          </form>
-
-          <div className="rounded-lg border bg-white p-5 shadow-sm">
-            <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800">Course Tasks</h2>
-                <p className="text-sm text-gray-500">{selectedCourse ? `${selectedCourse.courseCode} - ${selectedCourse.semester}` : 'Create a course to begin.'}</p>
-              </div>
-              <div className="flex gap-3">
-                <select
-                  value={selectedCourseId}
-                  onChange={(e) => setSelectedCourseId(e.target.value)}
-                  className="rounded-lg border px-3 py-2 text-sm"
-                >
-                  <option value="">Select course</option>
-                  {courses.map((course) => (
-                    <option key={course._id} value={course._id}>
-                      {course.name}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={() => setShowUpload(true)}
-                  disabled={!selectedCourseId}
-                  className="rounded-lg bg-indigo-500 px-4 py-2 text-sm text-white disabled:opacity-50"
-                >
-                  Upload Syllabus
-                </button>
-              </div>
-            </div>
-
-            {loading ? (
-              <p className="text-sm text-gray-500">Loading...</p>
-            ) : tasks.length === 0 ? (
-              <div className="rounded-lg border p-8 text-center">
-                <p className="text-gray-500">No tasks yet. Upload and process a syllabus to get started.</p>
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                {tasks.map((task) => (
-                  <article key={task._id} className="rounded-lg border p-5 shadow-sm">
-                    <div className="mb-3 flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="font-semibold text-gray-800">{task.title}</h3>
-                        <p className="text-xs uppercase tracking-wide text-gray-500">{task.type} - {task.priority}</p>
-                      </div>
-                      <button onClick={() => deleteTask(task._id)} className="text-sm text-red-500">
-                        Delete
-                      </button>
-                    </div>
-
-                    <p className="mb-3 text-sm text-gray-500">
-                      Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No date'}
-                    </p>
-
-                    {task.description && <p className="mb-4 text-sm text-gray-600">{task.description}</p>}
-
-                    <div className="flex items-center justify-between">
-                      <select
-                        value={task.status || 'pending'}
-                        onChange={(e) => updateStatus(task._id, e.target.value)}
-                        className="rounded-lg border bg-white px-2 py-1 text-sm"
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="complete">Complete</option>
-                      </select>
-                      <button onClick={() => setEditingTask(task)} className="text-sm text-indigo-600">
-                        Edit
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
+        {assignments.length === 0 ? (
+          <div className="bg-white rounded-lg p-12 text-center border">
+            <p className="text-gray-500">No assignments yet. Upload a syllabus to get started.</p>
           </div>
-        </section>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {assignments.map((assignment) => (
+              <div key={assignment._id} className="bg-white rounded-lg border p-5 shadow-sm hover:shadow-md transition">
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="font-semibold text-gray-800">{assignment.title}</h3>
+                  <button
+                    onClick={() => deleteAssignment(assignment._id)}
+                    className="text-red-400 hover:text-red-600 text-sm"
+                  >
+                    &times;
+                  </button>
+                </div>
+
+                <p className="text-sm text-gray-500 mb-3">
+                  Due: {assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'No date'}
+                </p>
+
+                {assignment.description && (
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">{assignment.description}</p>
+                )}
+
+                <div className="flex justify-between items-center">
+                  <select
+                    value={assignment.status || 'pending'}
+                    onChange={(e) => updateStatus(assignment._id, e.target.value)}
+                    className="text-sm border rounded-lg px-2 py-1 bg-white"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="complete">Complete</option>
+                  </select>
+
+                  <button
+                    onClick={() => setEditingAssignment(assignment)}
+                    className="text-indigo-500 hover:text-indigo-700 text-sm"
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {showUpload && (
@@ -340,31 +295,26 @@ export default function Dashboard() {
           courseId={selectedCourseId}
           token={auth.token}
           onClose={() => setShowUpload(false)}
-          onUploadSuccess={() => fetchTasks(selectedCourseId, auth.token)}
+          onUploadSuccess={() => fetchAssignments(selectedCourseId, auth.token)}
         />
       )}
 
-      {editingTask && (
-        <EditTaskModal
-          task={editingTask}
+      {editingAssignment && (
+        <EditModal
+          assignment={editingAssignment}
           token={auth.token}
-          onClose={() => setEditingTask(null)}
-          onSave={() => fetchTasks(selectedCourseId, auth.token)}
+          onClose={() => setEditingAssignment(null)}
+          onSave={() => fetchAssignments(selectedCourseId, auth.token)}
         />
       )}
-    </main>
+    </div>
   );
 }
 
-function EditTaskModal({ task, token, onClose, onSave }) {
-  const [form, setForm] = useState({
-    title: task.title || '',
-    type: task.type || 'assignment',
-    dueDate: task.dueDate?.split('T')[0] || '',
-    description: task.description || '',
-    priority: task.priority || 'medium',
-    status: task.status || 'pending',
-  });
+function EditModal({ assignment, token, onClose, onSave }) {
+  const [name, setName] = useState(assignment.title);
+  const [dueDate, setDueDate] = useState(assignment.dueDate?.split('T')[0] || '');
+  const [description, setDescription] = useState(assignment.description || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -374,12 +324,13 @@ function EditTaskModal({ task, token, onClose, onSave }) {
     setError('');
 
     try {
-      await apiRequest(`/tasks/${task._id}`, {
+      await apiRequest(`/tasks/${assignment._id}`, {
         token,
         method: 'PUT',
         body: {
-          ...form,
-          dueDate: form.dueDate ? new Date(form.dueDate).toISOString() : null,
+          title: name,
+          dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+          description,
         },
       });
       onSave();
@@ -392,54 +343,37 @@ function EditTaskModal({ task, token, onClose, onSave }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-6">
-        <h2 className="mb-4 text-xl font-bold">Edit Task</h2>
-        {error && <p className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-        <form onSubmit={handleSubmit} className="grid gap-3">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4">Edit Assignment</h2>
+        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+        <form onSubmit={handleSubmit}>
           <input
             type="text"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="rounded-lg border p-2"
-            placeholder="Task title"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full border rounded-lg p-2 mb-3"
+            placeholder="Assignment name"
             required
           />
-          <div className="grid grid-cols-2 gap-3">
-            <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="rounded-lg border p-2">
-              <option value="assignment">Assignment</option>
-              <option value="exam">Exam</option>
-              <option value="quiz">Quiz</option>
-              <option value="reading">Reading</option>
-            </select>
-            <select value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })} className="rounded-lg border p-2">
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </div>
           <input
             type="date"
-            value={form.dueDate}
-            onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
-            className="rounded-lg border p-2"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="w-full border rounded-lg p-2 mb-3"
           />
-          <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="rounded-lg border p-2">
-            <option value="pending">Pending</option>
-            <option value="complete">Complete</option>
-          </select>
           <textarea
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="rounded-lg border p-2"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full border rounded-lg p-2 mb-4"
             placeholder="Description"
             rows="3"
           />
           <div className="flex gap-3">
-            <button type="submit" disabled={saving} className="flex-1 rounded-lg bg-indigo-500 px-4 py-2 text-white disabled:opacity-50">
+            <button type="submit" disabled={saving} className="bg-indigo-500 text-white px-4 py-2 rounded-lg flex-1">
               {saving ? 'Saving...' : 'Save'}
             </button>
-            <button type="button" onClick={onClose} className="flex-1 rounded-lg border px-4 py-2">
+            <button type="button" onClick={onClose} className="border rounded-lg px-4 py-2 flex-1">
               Cancel
             </button>
           </div>

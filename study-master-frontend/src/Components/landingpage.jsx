@@ -1,4 +1,9 @@
+import { useState } from 'react';
+import UploadModal from './uploadModal';
+
 export default function LandingPage() {
+    const [showUpload, setShowUpload] = useState(false);
+
   return (
     <div className="min-h-screen bg-gray-50">
         
@@ -35,8 +40,10 @@ export default function LandingPage() {
                     semester. Get smart recommendations, automated task generation, and personalized study strategies.</p>
                 
                 <div className="flex gap-4">
-                    <a href="/dashboard" className="bg-indigo-500 text-white text-sm px-6 py-3 rounded-lg">
-                    Upload syllabus </a>
+                    <button
+                    onClick={() => setShowUpload(true)}
+                    className="bg-indigo-500 text-white text-sm px-6 py-3 rounded-lg">
+                    Upload syllabus </button>
                     <button className="border border-gray-200 text-sm px-6 py-3 rounded-lg">
                     See demo </button>
                 </div>
@@ -110,6 +117,13 @@ export default function LandingPage() {
         {/* get started section */}
         <section className="bg-gray-100 py-16 px-7">
         </section>
+         {/* Upload Modal */}
+         {showUpload && (
+            <UploadModal
+                onClose={() => setShowUpload(false)}
+                onUploadSuccess={() => window.location.href = '/dashboard'}
+            />
+        )}
     </div>
   );
 }
