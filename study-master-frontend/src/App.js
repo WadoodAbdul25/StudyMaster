@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useState } from 'react';
 import LandingPage from './Components/landingpage';
 import Dashboard from './Components/dashboard';
+import Classes from './Components/classes';
 import UploadModal from './Components/uploadModal';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/dashboard" element={<Dashboard key={refreshDashboard} />} />
+          <Route path="/classes" element={<Classes />} />
         </Routes>
 
         {/* Upload Modal */}

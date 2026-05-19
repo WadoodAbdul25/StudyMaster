@@ -97,18 +97,28 @@ export default function Dashboard() {
         {/* Navigation */}
         <div className="flex-1 px-3 py-5">
           <div className="space-y-1">
-            {navItems.map((item) => (
-              <button
-                key={item}
-                onClick={() => setActiveNav(item)}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
-                  activeNav === item
-                    ? 'bg-indigo-50 text-indigo-500 font-medium'
-                    : 'text-gray-500 hover:bg-gray-50'
-                }`}>
-                {item}
-              </button>
-            ))}
+            {navItems.map((item) => {
+              const routeMap = {
+                'Dashboard': '/dashboard',
+                'Classes': '/classes',
+                'Calendar': '/calendar',
+                'AI Assistant': '/ai',
+                'Settings': '/settings',
+              };
+              return (
+                <Link
+                  key={item}
+                  to={routeMap[item]}
+                  onClick={() => setActiveNav(item)}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition block ${
+                    activeNav === item
+                      ? 'bg-indigo-50 text-indigo-500 font-medium'
+                      : 'text-gray-500 hover:bg-gray-50'
+                  }`}>
+                  {item}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Tip Card */}
