@@ -15,11 +15,21 @@ const verifyToken = require("./middleware/verifyToken");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3000,http://localhost:3001")
+  .split(",")
+  .map((origin) => origin.trim());
 
 fs.mkdirSync("uploads", { recursive: true });
 
 // cors middleware
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
+}));
 app.use(express.json());
 
 app.get("/", (req, res) => {
