@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import UploadModal from './uploadModal';
 import { apiRequest, clearStoredAuth, getStoredAuth, setStoredAuth } from '../api';
 
@@ -22,11 +22,37 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const fetchCourses = useCallback(async (token) => {
+    setError('');
+    setLoading(true);
+
+    try {
+      const data = await apiRequest('/courses', { token });
+      setCourses(data);
+      setSelectedCourseId((currentId) => currentId || data[0]?._id || '');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchTasks = useCallback(async (courseId, token) => {
+    setError('');
+
+    try {
+      const data = await apiRequest(`/courses/${courseId}/tasks`, { token });
+      setTasks(data);
+    } catch (err) {
+      setError(err.message);
+    }
+  }, []);
+
   useEffect(() => {
     if (auth?.token) {
       fetchCourses(auth.token);
     }
-  }, [auth?.token]);
+  }, [auth?.token, fetchCourses]);
 
   useEffect(() => {
     if (auth?.token && selectedCourseId) {
@@ -34,7 +60,7 @@ export default function Dashboard() {
     } else {
       setTasks([]);
     }
-  }, [auth?.token, selectedCourseId]);
+  }, [auth?.token, fetchTasks, selectedCourseId]);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -58,32 +84,6 @@ export default function Dashboard() {
       setError(err.message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchCourses = async (token = auth?.token) => {
-    setError('');
-    setLoading(true);
-
-    try {
-      const data = await apiRequest('/courses', { token });
-      setCourses(data);
-      setSelectedCourseId((currentId) => currentId || data[0]?._id || '');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchTasks = async (courseId = selectedCourseId, token = auth?.token) => {
-    setError('');
-
-    try {
-      const data = await apiRequest(`/courses/${courseId}/tasks`, { token });
-      setTasks(data);
-    } catch (err) {
-      setError(err.message);
     }
   };
 
@@ -112,7 +112,7 @@ export default function Dashboard() {
         method: 'PUT',
         body: { status },
       });
-      fetchTasks();
+      fetchTasks(selectedCourseId, auth.token);
     } catch (err) {
       setError(err.message);
     }
@@ -128,7 +128,7 @@ export default function Dashboard() {
         token: auth.token,
         method: 'DELETE',
       });
-      fetchTasks();
+      fetchTasks(selectedCourseId, auth.token);
     } catch (err) {
       setError(err.message);
     }
@@ -340,7 +340,7 @@ export default function Dashboard() {
           courseId={selectedCourseId}
           token={auth.token}
           onClose={() => setShowUpload(false)}
-          onUploadSuccess={() => fetchTasks()}
+          onUploadSuccess={() => fetchTasks(selectedCourseId, auth.token)}
         />
       )}
 
@@ -349,7 +349,7 @@ export default function Dashboard() {
           task={editingTask}
           token={auth.token}
           onClose={() => setEditingTask(null)}
-          onSave={() => fetchTasks()}
+          onSave={() => fetchTasks(selectedCourseId, auth.token)}
         />
       )}
     </main>
